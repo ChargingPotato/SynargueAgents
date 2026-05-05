@@ -1,0 +1,17 @@
+[project]
+name = "decisionpal"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "streamlit",
+    "langgraph",
+    "langchain-openai",
+    "python-dotenv",
+    "langchain>=1.2.17",
+]
+
+[[tool.uv.index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
