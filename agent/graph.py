@@ -1,6 +1,7 @@
 from langgraph.graph import StateGraph, END
 from .state import DecisionState
 from .nodes import node_collect_info, node_pro_debater, node_con_debater, node_decision_maker
+from redis_memory import memory_saver
 
 workflow = StateGraph(DecisionState)
 
