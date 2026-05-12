@@ -1,33 +1,76 @@
 import json
-import os
-from langchain_core.messages import HumanMessage
-from .state import DecisionState
-from .models import pro_llm, con_llm, decision_llm
+from state import ArgumentState
+from models import analyzer_llm, research_llm, debater_llm
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
-os.makedirs(DATA_DIR, exist_ok=True)
-HISTORY_FILE = os.path.join(DATA_DIR, 'history.json')
+def analyzer_node(state: ArgumentState):
+    """一级论证：分析问题，分为两派"""
+    topic = state.get("topic")
+    prompt = f"辩题：{topic}。请将其拆分为对立的两派，返回JSON：{{\"side_a\": \"正方观点\", \"side_b\": \"反方观点\"}}"
+    # 实际开发中建议使用 Structured Output 强制返回 JSON
+    response = analyzer_llm.invoke(prompt)
+    try:
+        sides = json.loads(response.content.strip('```json\n').strip('```'))
+    except:
+        sides = {"side_a": "支持", "side_b": "反对"}
+    return {"sides": sides}
 
-def node_collect_info(state: DecisionState):
-    info = f"网络检索到关于【{state['user_query']}】的背景资料显示该事物具有两面性..."
-    return {"collected_info": info}
-
-def node_pro_debater(state: DecisionState):
-    prompt = f"基于信息：{state['collected_info']}。请极力支持决策：【{state['user_query']}】。给出3个理由。"
-    response = pro_llm.invoke([HumanMessage(content=prompt)])
-    return {"pro_argument": response.content}
-
-def node_con_debater(state: DecisionState):
-    prompt = f"基于信息：{state['collected_info']}。请极力反对决策：【{state['user_query']}】。指出3个风险。"
-    response = con_llm.invoke([HumanMessage(content=prompt)])
-    return {"con_argument": response.content}
-
-def node_decision_maker(state: DecisionState):
-    prompt = f"决策：{state['user_query']}\n正方：{state['pro_argument']}\n反方：{state['con_argument']}\n请给出客观最终建议。"
-    response = decision_llm.invoke([HumanMessage(content=prompt)])
-    decision_result = response.content
+def research_node(state: ArgumentState):
+    """两个agent分别搜集有利资料"""
+    topic = state.get("topic")
+    sides = state.get("sides", {})
     
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
-        
-    return {"final_decision": decision_result}
+    # 模拟并行搜索 (实际可用 asyncio.gather 优化并发)
+    # 此处省略具体 Prompt 和 JSON 解析，直接模拟返回结构
+    data_a = [{"source": "网络", "content": f"支持 {sides.get('side_a')} 的证据1", "valid": True}]
+    data_b = [{"source": "网络", "content": f"支持 {sides.get('side_b')} 的证据1", "valid": True}]
+    
+    return {"research_data_a": data_a, "research_data_b": data_b}
+
+def verifier_node(state: ArgumentState):
+    """第三方Agent进行资料验真打分"""
+    data_a = state.get("research_data_a", [])
+    # 模拟大模型打分
+    for item in data_a:
+        item["score"] = 5  # LLM 评估后的分数
+    return {"research_data_a": data_a}
+
+def human_filter_1_node(state: ArgumentState):
+    """人工介入点 1：判断资料有效性 (空节点，仅用于挂起)"""
+    print("--- 等待人工审核搜索资料 ---")
+    return {}
+
+def argument_node(state: ArgumentState):
+    """根据有效资料进行分析论述"""
+    sides = state.get("sides", {})
+    # 仅使用人工确认 valid=True 的数据
+    valid_a = [d for d in state.get("research_data_a", []) if d.get("valid")]
+    
+    prompt_a = f"你是正方({sides.get('side_a')})，基于资料 {valid_a} 展开论述。"
+    arg_a = debater_llm.invoke(prompt_a).content
+    
+    return {"arguments": {"side_a": arg_a, "side_b": "反方论述省略..."}}
+
+def rebuttal_node(state: ArgumentState):
+    """二级反驳：针对对方论点和资料进行反驳"""
+    args = state.get("arguments", {})
+    prompt = f"反驳对方的观点：{args.get('side_b')}"
+    rebut_a = debater_llm.invoke(prompt).content
+    return {"rebuttals": {"side_a_rebut_b": rebut_a, "side_b_rebut_a": "反驳A..."}}
+
+def human_filter_2_node(state: ArgumentState):
+    """人工介入点 2：判断反驳合理性 (空节点，仅用于挂起)"""
+    print("--- 等待人工审核反驳意见 ---")
+    return {}
+
+def refine_node(state: ArgumentState):
+    """结合反驳和人工反馈，重新论述"""
+    feedback = state.get("human_feedback", "")
+    return {"arguments": {"side_a": f"修正后的正方论述 (采纳了建议：{feedback})", "side_b": "修正后的反方论述"}}
+
+def summary_node(state: ArgumentState):
+    """三级总结论证：输出最终倾向度"""
+    topic = state.get("topic")
+    return {
+        "final_summary": f"关于 {topic} 的最终辩论总结...",
+        "tendency_score": {"side_a": 0.7, "side_b": 0.3}
+    }

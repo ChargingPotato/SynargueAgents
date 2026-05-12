@@ -1,19 +1,69 @@
+# graph.py
 from langgraph.graph import StateGraph, END
-from .state import DecisionState
-from .nodes import node_collect_info, node_pro_debater, node_con_debater, node_decision_maker
-from redis_memory import memory_saver
+from langgraph.checkpoint.memory import MemorySaver
 
-workflow = StateGraph(DecisionState)
+# 导入你定义的全局状态
+from state import ArgumentState
 
-workflow.add_node("Collect", node_collect_info)
-workflow.add_node("Pro_Debate", node_pro_debater)
-workflow.add_node("Con_Debate", node_con_debater)
-workflow.add_node("Make_Decision", node_decision_maker)
+# 导入你在 node.py 中写好的具体执行逻辑
+from nodes import (
+    analyzer_node, 
+    research_node, 
+    verifier_node, 
+    human_filter_1_node,
+    argument_node, 
+    rebuttal_node, 
+    human_filter_2_node, 
+    refine_node, 
+    summary_node
+)
 
-workflow.set_entry_point("Collect")
-workflow.add_edge("Collect", "Pro_Debate")
-workflow.add_edge("Pro_Debate", "Con_Debate")
-workflow.add_edge("Con_Debate", "Make_Decision")
-workflow.add_edge("Make_Decision", END)
+def build_debate_graph():
+    """
+    构建并编译带有多重人工中断的辩论图结构
+    """
+    # 1. 实例化图容器，绑定 ArgumentState 状态蓝图
+    workflow = StateGraph(ArgumentState)
 
-agent_app = workflow.compile()
+    # 2. 注册所有的业务节点
+    workflow.add_node("analyze", analyzer_node)
+    workflow.add_node("research", research_node)
+    workflow.add_node("verify", verifier_node)
+    workflow.add_node("human_filter_1", human_filter_1_node) # 第一次中断点：资料审核
+    workflow.add_node("argue", argument_node)
+    
+    workflow.add_node("rebuttal", rebuttal_node)
+    workflow.add_node("human_filter_2", human_filter_2_node) # 第二次中断点：反驳反馈
+    workflow.add_node("refine", refine_node)
+    
+    workflow.add_node("summarize", summary_node)
+
+    # 3. 编排完整的工作流转路径
+    workflow.set_entry_point("analyze")
+    workflow.add_edge("analyze", "research")
+    workflow.add_edge("research", "verify")
+    workflow.add_edge("verify", "human_filter_1")
+    workflow.add_edge("human_filter_1", "argue")
+    workflow.add_edge("argue", "rebuttal")
+    workflow.add_edge("rebuttal", "human_filter_2")
+    workflow.add_edge("human_filter_2", "refine")
+    workflow.add_edge("refine", "summarize")
+    workflow.add_edge("summarize", END)
+
+    # ==========================================
+    # 4. 核心：引入持久化记忆载体
+    # ==========================================
+    # MemorySaver() 会在内存中记录每一步的 State。
+    # 当图被中断挂起时，Streamlit 刷新也不会丢失这些数据。
+    memory = MemorySaver()
+
+    # 5. 编译，并设置两次中断拦截
+    app = workflow.compile(
+        checkpointer=memory,
+        interrupt_before=["human_filter_1", "human_filter_2"]
+    )
+    
+    return app
+
+# 提供一个编译好的单例实例，供 app.py 直接 import 并在前端调用
+debate_app = build_debate_graph()
