@@ -1,6 +1,6 @@
 import json
-from state import ArgumentState
-from models import analyzer_llm, research_llm, debater_llm
+from .state import ArgumentState
+from .models import analyzer_llm, research_llm, debater_llm
 
 def analyzer_node(state: ArgumentState):
     """一级论证：分析问题，分为两派"""

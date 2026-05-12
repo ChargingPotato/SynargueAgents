@@ -3,10 +3,10 @@ from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 
 # 导入你定义的全局状态
-from state import ArgumentState
+from .state import ArgumentState
 
 # 导入你在 node.py 中写好的具体执行逻辑
-from nodes import (
+from .nodes import (
     analyzer_node, 
     research_node, 
     verifier_node, 
