@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
+from agent.tools import agent_tools
 
 load_dotenv()
 api_key = os.getenv("DASHSCOPE_API_KEY")
@@ -23,6 +24,9 @@ research_llm = init_chat_model(
     api_key=api_key,
     temperature=0.3
 )
+
+research_llm_with_tools = research_llm.bind_tools(agent_tools)
+
 
 # 3. 辩手模型 (需要创造力和攻击性，高温度)
 debater_llm = init_chat_model(
