@@ -38,7 +38,7 @@ def research_node_a(state: ArgumentState):
     if not any("我是正方情报官" in msg.content for msg in messages if isinstance(msg, HumanMessage)):
         system_prompt = (
             f"[我是正方情报官]\n辩题：{topic}。\n你的立场是：支持【正方】({sides.get('side_a')})。\n"
-            f"请务必使用网络搜索工具，寻找对正方有利的证据。搜集完成后，总结你的正方调查结果。"
+            f"请使用网络搜索工具，寻找对正方有利的数据资料。搜集完成后，整理你的正方相关资料。"
         )
         messages.append(HumanMessage(content=system_prompt))
     
@@ -49,7 +49,7 @@ def research_node_a(state: ArgumentState):
     if not response.tool_calls:
         print("--- Agent A 资料搜集完毕，正在格式化为 JSON ---")
         extract_prompt = (
-            f"请从以下报告中提取对正方有利的证据，严格返回 JSON 数组格式（不要包含任何其他文本）：\n"
+            f"请从以下资料中提取对正方有利的资料，严格返回 JSON 数组格式（不要包含任何其他文本）：\n"
             f"[{{\"source\": \"资料来源(若无则写网络)\", \"content\": \"具体的论据内容\"}}]\n\n"
             f"报告内容：\n{response.content}"
         )
