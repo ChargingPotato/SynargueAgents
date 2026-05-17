@@ -16,7 +16,7 @@ analyzer_llm = init_chat_model(
     temperature=0.1
 )
 
-# 2. 资料搜集与验真模型 (需要广泛的知识和判断力)
+# 2. 资料搜集模型 (需要广泛的知识和判断力)
 research_llm = init_chat_model(
     model="deepseek-v4-pro",
     model_provider="openai",
@@ -34,5 +34,5 @@ debater_llm = init_chat_model(
     model_provider="openai",
     base_url=base_url,
     api_key=api_key,
-    temperature=0.7
+    temperature=0.5
 )

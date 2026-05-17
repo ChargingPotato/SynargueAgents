@@ -50,6 +50,9 @@ elif "human_filter_1" in next_nodes:
         data_a = state_values.get("research_data_a", [])
         data_b = state_values.get("research_data_b", [])
         
+        st.write("🔍 Debug: 当前状态中的 data_a =", data_a)
+        st.write("🔍 Debug: 当前状态中的 data_b =", data_b)
+        
         with col1:
             st.success(f"🔵 正方观点：{state_values.get('sides', {}).get('side_a')}")
             for i, item in enumerate(data_a):
