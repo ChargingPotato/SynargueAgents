@@ -71,8 +71,8 @@ def build_debate_graph():
     # 3. 编排完整的工作流转路径
     workflow.set_entry_point("analyze")
     workflow.add_edge("analyze", "research_a")
-    workflow.add_edge("analyze", "research_b")
-    workflow.add_edge("research_b", "verify")
+    #workflow.add_edge("analyze", "research_b")
+    #workflow.add_edge("research_b", "verify")
     workflow.add_edge("verify", "human_filter_1")
     workflow.add_edge("human_filter_1", "argue")
     workflow.add_edge("argue", "rebuttal")

@@ -56,3 +56,5 @@ search_tool = TavilySearch(max_results=2,search_depth="basic")
 #tools = [search_tool]
 
 agent_tools = [search_tool]
+
+agent_tools = [web_search_tool]

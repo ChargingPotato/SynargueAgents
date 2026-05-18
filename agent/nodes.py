@@ -222,9 +222,8 @@ def argument_node(state: ArgumentState):
         f"要求：\n"
         f"1. 充分利用资料中的数据和事实作为你的论据。\n"
         f"2. 逻辑严密，条理清晰（可以分点论述）。\n"
-        f"3. 语气坚定，富有煽动性和说服力。\n"
         f"（如果提供的资料为空，请凭借你的常识和逻辑推演进行立论）。\n"
-        f"请直接输出你的辩词，不需要多余的问候语。"
+        f"请直接输出你的观点和证明，不需要多余的问候语。"
     )
     arg_a = debater_llm.invoke([HumanMessage(content=prompt_a)]).content
 
@@ -239,9 +238,8 @@ def argument_node(state: ArgumentState):
         f"要求：\n"
         f"1. 充分利用资料中的数据和事实作为你的论据。\n"
         f"2. 逻辑严密，条理清晰（可以分点论述）。\n"
-        f"3. 语气坚定，富有煽动性和说服力。\n"
         f"（如果提供的资料为空，请凭借你的常识和逻辑推演进行立论）。\n"
-        f"请直接输出你的辩词，不需要多余的问候语。"
+        f"请直接输出你的观点和证明，不需要多余的问候语。"
     )
     arg_b = debater_llm.invoke([HumanMessage(content=prompt_b)]).content
 
@@ -284,10 +282,10 @@ def rebuttal_node(state: ArgumentState):
         f"【反方依赖的资料】：\n{valid_b}\n\n"
         f"【你己方拥有的资料】：\n{valid_a}\n\n"
         f"你的反驳任务（请条理清晰地分点阐述）：\n"
-        f"1. 破防资料：指出反方资料可能存在的片面性、样本偏差或时效性问题。\n"
+        f"1. 破防资料：指出反方资料可能存在的片面性、样本偏差或时效性等问题。\n"
         f"2. 破防逻辑：直接攻击反方论述中的核心逻辑漏洞。\n"
-        f"3. 巩固己方：利用己方资料或常识，对反方的论点进行压制。\n"
-        f"要求语气犀利、逻辑严密，具有强大的辩论压迫感。直接输出你的反驳辩词。"
+        f"3. 巩固己方：利用己方资料或常识，对反方的论点进行反驳。\n"
+        f"要求条理清晰。直接输出你的反驳辩词。"
     )
     rebuttal_a = debater_llm.invoke([HumanMessage(content=prompt_a_rebuts_b)]).content
 
@@ -302,10 +300,10 @@ def rebuttal_node(state: ArgumentState):
         f"【正方依赖的资料】：\n{valid_a}\n\n"
         f"【你己方拥有的资料】：\n{valid_b}\n\n"
         f"你的反驳任务（请条理清晰地分点阐述）：\n"
-        f"1. 破防资料：指出正方资料可能存在的片面性、样本偏差或时效性问题。\n"
+        f"1. 破防资料：指出正方资料可能存在的片面性、样本偏差或时效性等问题。\n"
         f"2. 破防逻辑：直接攻击正方论述中的核心逻辑漏洞。\n"
-        f"3. 巩固己方：利用己方资料或常识，对正方的论点进行压制。\n"
-        f"要求语气犀利、逻辑严密，具有强大的辩论压迫感。直接输出你的反驳辩词。"
+        f"3. 巩固己方：利用己方资料或常识，对正方的论点进行反驳。\n"
+        f"要求条理清晰。直接输出你的反驳辩词。"
     )
     rebuttal_b = debater_llm.invoke([HumanMessage(content=prompt_b_rebuts_a)]).content
 
@@ -364,7 +362,7 @@ def refine_node(state: ArgumentState):
         f"1. 深刻吸纳人类裁判的指导意见，这决定了你最终的得分。\n"
         f"2. 针对对方的攻击，修补你初版论述中的逻辑漏洞，或者进行强有力的防守反击。\n"
         f"3. 整合升华，输出你最终版的、无懈可击的【正方结案陈词】。\n"
-        f"要求：语气坚定，高屋建瓴，直接输出你的最终辩词。"
+        f"要求：条理清晰，逻辑清晰。"
     )
     refined_arg_a = debater_llm.invoke([HumanMessage(content=prompt_a_refine)]).content
 
@@ -383,7 +381,7 @@ def refine_node(state: ArgumentState):
         f"1. 深刻吸纳人类裁判的指导意见，这决定了你最终的得分。\n"
         f"2. 针对对方的攻击，修补你初版论述中的逻辑漏洞，或者进行强有力的防守反击。\n"
         f"3. 整合升华，输出你最终版的、无懈可击的【反方结案陈词】。\n"
-        f"要求：语气坚定，高屋建瓴，直接输出你的最终辩词。"
+        f"要求：条理清晰，逻辑清晰。"
     )
     refined_arg_b = debater_llm.invoke([HumanMessage(content=prompt_b_refine)]).content
 

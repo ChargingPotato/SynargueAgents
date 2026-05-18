@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain.chat_models import init_chat_model
-from agent.tools import agent_tools
+from agent.mcptools import agent_tools
 
 load_dotenv()
 api_key = os.getenv("DASHSCOPE_API_KEY")
@@ -34,5 +34,5 @@ debater_llm = init_chat_model(
     model_provider="openai",
     base_url=base_url,
     api_key=api_key,
-    temperature=0.5
+    temperature=0.3
 )
