@@ -3,7 +3,7 @@ from .state import ArgumentState
 from .models import analyzer_llm, research_llm, debater_llm ,research_llm_with_tools
 from langchain_core.messages import HumanMessage
 from langgraph.prebuilt import ToolNode
-from .tools import agent_tools
+from .mcptools import agent_tools
 
 def analyzer_node(state: ArgumentState):
     """一级论证：分析问题，分为两派"""
