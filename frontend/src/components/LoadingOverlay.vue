@@ -6,20 +6,34 @@
         <div class="orb orb-2"></div>
         <div class="orb orb-3"></div>
       </div>
+      <p class="loading-phase">{{ phaseLabel }}</p>
       <p class="loading-message">{{ message }}</p>
       <div class="loading-bar-wrapper">
         <div class="loading-bar"></div>
       </div>
+      <p class="loading-hint">AI Agent 正在进行多步推理，请耐心等待...</p>
     </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const props = defineProps({
   message: {
     type: String,
     default: '处理中...',
   },
+})
+
+const phaseLabel = computed(() => {
+  const msg = props.message || ''
+  if (msg.includes('辩题分析')) return '📋 阶段 1/5: 辩题分析'
+  if (msg.includes('搜索') || msg.includes('搜集')) return '🔍 阶段 2/5: 双轨情报搜集'
+  if (msg.includes('验真') || msg.includes('打分')) return '⚖️ 阶段 3/5: 资料验真'
+  if (msg.includes('立论') || msg.includes('反驳')) return '⚔️ 阶段 4/5: 辩论交锋'
+  if (msg.includes('结案') || msg.includes('判决') || msg.includes('裁判')) return '🏆 阶段 5/5: 最终判决'
+  return '🔄 处理中...'
 })
 </script>
 
@@ -34,7 +48,7 @@ defineProps({
 .loading-card {
   text-align: center;
   padding: 50px 60px;
-  max-width: 480px;
+  max-width: 520px;
   width: 100%;
 }
 
@@ -78,11 +92,26 @@ defineProps({
   }
 }
 
+.loading-phase {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
 .loading-message {
   font-size: 15px;
   color: var(--text-secondary);
   margin-bottom: 24px;
   line-height: 1.6;
+}
+
+.loading-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  margin-top: 16px;
 }
 
 .loading-bar-wrapper {

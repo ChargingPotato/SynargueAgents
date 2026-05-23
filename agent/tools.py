@@ -1,60 +1,63 @@
-import requests
-from bs4 import BeautifulSoup
-from langchain_core.tools import tool
-import urllib3
 import os
+import requests
 from dotenv import load_dotenv
-
-# 压制忽略 SSL 验证带来的警告
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from langchain_core.tools import tool
 
 load_dotenv()
 
+BOCHA_API_KEY = os.getenv("BOCHA_API_KEY")
+
+
 @tool
-def web_search_tool(query: str) -> str:
+def bocha_web_search(query: str, count: int = 10) -> str:
     """
-    当你需要获取最新的网络资料、新闻或事实依据时，请调用此工具进行网络搜索。
+    使用 Bocha Web Search API 进行互联网网页搜索。
+    当你需要获取最新的网络资料、新闻或事实依据时，请调用此工具。
+
+    参数:
+    - query: 搜索关键词
+    - count: 返回的搜索结果数量，默认 10 条
     """
-    print(f"\n[Tool Execution] 正在通过 Bing 中国搜索: {query}")
-    
+    url = "https://api.bochaai.com/v1/web-search"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        "Accept-Language": "zh-CN,zh;q=0.9" # 强制要求中文结果，防止被重定向到国际版
+        "Authorization": f"Bearer {BOCHA_API_KEY}",
+        "Content-Type": "application/json",
     }
-    
-    url = f"https://cn.bing.com/search?q={query}"
-    
+    payload = {
+        "query": query,
+        "freshness": "noLimit",
+        "summary": True,
+        "count": count,
+    }
+
     try:
-        # 🚨 核心修复：加上 verify=False，忽略本地网络环境的 SSL 证书冲突
-        response = requests.get(url, headers=headers, timeout=10, verify=False)
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
         response.raise_for_status()
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
-        results = []
-        
-        for li in soup.find_all('li', class_='b_algo')[:5]:
-            title_tag = li.find('h2')
-            p_tag = li.find('p')
-            
-            if title_tag and p_tag:
-                results.append(f"【标题】: {title_tag.text.strip()}\n【内容】: {p_tag.text.strip()}")
-        
-        if not results:
-            return "搜索成功，但未找到相关结果内容。"
-            
-        return "\n\n".join(results)
+        body = response.json()
 
+        if body.get("code") != 200 or not body.get("data"):
+            return f"搜索API请求失败: {body.get('msg', '未知错误')}"
+
+        webpages = body["data"]["webPages"]["value"]
+        if not webpages:
+            return "未找到相关搜索结果。"
+
+        formatted_results = ""
+        for idx, page in enumerate(webpages, start=1):
+            formatted_results += (
+                f"【结果 {idx}】\n"
+                f"标题: {page['name']}\n"
+                f"URL: {page['url']}\n"
+                f"摘要: {page['summary']}\n"
+                f"来源: {page['siteName']}\n"
+                f"发布时间: {page.get('dateLastCrawled', '未知')}\n\n"
+            )
+        return formatted_results.strip()
+
+    except requests.RequestException as e:
+        return f"搜索请求失败: {str(e)}"
     except Exception as e:
-        print(f"[Bing Search Error] 错误: {e}")
-        return f"搜索执行失败: {str(e)}"
+        return f"搜索结果解析失败: {str(e)}"
 
-from langchain_tavily import TavilySearch
-# 初始化搜索工具
-tavily_key = os.getenv("TAVILY_API_KEY")
-search_tool = TavilySearch(max_results=2,search_depth="basic")
 
-#tools = [search_tool]
-
-agent_tools = [search_tool]
-
-agent_tools = [web_search_tool]
+agent_tools = [bocha_web_search]

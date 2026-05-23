@@ -1,4 +1,5 @@
 # graph.py
+from functools import partial
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import tools_condition
@@ -20,6 +21,9 @@ from .nodes import (
     research_node_b,        # 引入反方搜索
     search_tools_b_node,    # 引入反方工具
 )
+
+tools_condition_a = partial(tools_condition, messages_key="messages_a")
+tools_condition_b = partial(tools_condition, messages_key="messages_b")
 
 def build_debate_graph():
     """
@@ -50,7 +54,7 @@ def build_debate_graph():
     #条件边
     workflow.add_conditional_edges(
         "research_a",
-        tools_condition,
+        tools_condition_a,
         {
             "tools": "search_tools_a", # 如果 A 要搜集资料，去 A 的工具箱
             END: "research_b"          # 【关键】如果 A 觉得搜够了，把接力棒传给 B
@@ -60,7 +64,7 @@ def build_debate_graph():
 
     workflow.add_conditional_edges(
         "research_b",
-        tools_condition,
+        tools_condition_b,
         {
             "tools": "search_tools_b", # 如果 B 要搜集资料，去 B 的工具箱
             END: "verify"              # 【关键】如果 B 觉得搜够了，双方情报搜集完毕，进入第三方验真

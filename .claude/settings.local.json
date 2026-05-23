@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(uv run *)",
+      "Bash(where npm *)",
+      "Bash(cmd //c \"where npm\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill //PID 11804 //F)",
+      "Bash(curl -s http://127.0.0.1:8000/api/health)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/debate/start -H \"Content-Type: application/json\" -d '{\"topic\": \"测试辩题\"}' --max-time 10)",
+      "Bash(curl -s -X POST http://127.0.0.1:8000/api/debate/start -H \"Content-Type: application/json\" -d \"{\\\\\"topic\\\\\": \\\\\"test topic\\\\\"}\" --max-time 10)",
+      "WebSearch",
+      "Bash(npx vite *)"
+    ]
+  }
+}
