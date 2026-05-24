@@ -1,4 +1,4 @@
-# DecisionPal 一键启动脚本
+# Synargue 一键启动脚本
 # 三个服务：Worker / FastAPI / Vite Dev Server
 # Ctrl+C 停止全部
 
@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "  DecisionPal 一键启动" -ForegroundColor Cyan
+Write-Host "  Synargue 一键启动" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 
 $bgJobs = @()

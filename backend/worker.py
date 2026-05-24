@@ -1,5 +1,5 @@
 """
-DecisionPal 独立 Worker 进程
+Synargue 独立 Worker 进程
 ============================
 
 持久运行的守护进程，监听 Redis 队列 `debate_tasks`，执行 LangGraph 辩论工作流。
@@ -46,7 +46,7 @@ async def main_loop() -> None:
     await async_saver.asetup()
     debate_app = get_async_debate_app()
 
-    print(f"[Worker] 🔧 启动 DecisionPal Worker")
+    print(f"[Worker] 🔧 启动 Synargue Worker")
     print(f"[Worker] 📡 监听 Redis 队列: {DEBATE_QUEUE_KEY}")
 
     shutdown = False

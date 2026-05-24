@@ -4,7 +4,7 @@
       <div class="header-content">
         <div class="logo">
           <span class="logo-icon">⚖️</span>
-          <h1>DecisionPal</h1>
+          <h1>Synargue</h1>
         </div>
         <p class="subtitle">多智能体对抗演练与决策系统</p>
       </div>
