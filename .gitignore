@@ -73,4 +73,8 @@ desktop.ini
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
 bug.txt
+.claude/             # AI 助手的本地配置或对话历史
+.agents/             # Agent 的本地配置或对话历史
+docs/                # 本地文档资料库
