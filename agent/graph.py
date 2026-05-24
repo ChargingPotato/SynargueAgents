@@ -1,8 +1,8 @@
 # graph.py
 from functools import partial
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import tools_condition
+from .redis_memory import sync_saver, async_saver
 # 导入你定义的全局状态
 from .state import ArgumentState
 
@@ -25,58 +25,45 @@ from .nodes import (
 tools_condition_a = partial(tools_condition, messages_key="messages_a")
 tools_condition_b = partial(tools_condition, messages_key="messages_b")
 
-def build_debate_graph():
+def build_debate_graph(checkpointer=None):
+    """构建并编译带有多重人工中断的辩论图结构
+
+    checkpointer: sync_saver（网关）或 async_saver（Worker），默认 sync_saver
     """
-    构建并编译带有多重人工中断的辩论图结构
-    """
-    # 1. 实例化图容器，绑定 ArgumentState 状态蓝图
+    if checkpointer is None:
+        checkpointer = sync_saver
+
     workflow = StateGraph(ArgumentState)
 
-    # 2. 注册所有的业务节点
     workflow.add_node("analyze", analyzer_node)
-    #workflow.add_node("research", research_node)
-
     workflow.add_node("research_a", research_node_a)
     workflow.add_node("search_tools_a", search_tools_a_node)
     workflow.add_node("research_b", research_node_b)
-    workflow.add_node("search_tools_b", search_tools_b_node)    
-
+    workflow.add_node("search_tools_b", search_tools_b_node)
     workflow.add_node("verify", verifier_node)
-    workflow.add_node("human_filter_1", human_filter_1_node) # 第一次中断点：资料审核
+    workflow.add_node("human_filter_1", human_filter_1_node)
     workflow.add_node("argue", argument_node)
-    
     workflow.add_node("rebuttal", rebuttal_node)
-    workflow.add_node("human_filter_2", human_filter_2_node) # 第二次中断点：反驳反馈
+    workflow.add_node("human_filter_2", human_filter_2_node)
     workflow.add_node("refine", refine_node)
-    
     workflow.add_node("summarize", summary_node)
 
-    #条件边
     workflow.add_conditional_edges(
         "research_a",
         tools_condition_a,
-        {
-            "tools": "search_tools_a", # 如果 A 要搜集资料，去 A 的工具箱
-            END: "research_b"          # 【关键】如果 A 觉得搜够了，把接力棒传给 B
-        }
+        {"tools": "search_tools_a", END: "research_b"}
     )
     workflow.add_edge("search_tools_a", "research_a")
 
     workflow.add_conditional_edges(
         "research_b",
         tools_condition_b,
-        {
-            "tools": "search_tools_b", # 如果 B 要搜集资料，去 B 的工具箱
-            END: "verify"              # 【关键】如果 B 觉得搜够了，双方情报搜集完毕，进入第三方验真
-        }
+        {"tools": "search_tools_b", END: "verify"}
     )
     workflow.add_edge("search_tools_b", "research_b")
 
-    # 3. 编排完整的工作流转路径
     workflow.set_entry_point("analyze")
     workflow.add_edge("analyze", "research_a")
-    #workflow.add_edge("analyze", "research_b")
-    #workflow.add_edge("research_b", "verify")
     workflow.add_edge("verify", "human_filter_1")
     workflow.add_edge("human_filter_1", "argue")
     workflow.add_edge("argue", "rebuttal")
@@ -85,20 +72,17 @@ def build_debate_graph():
     workflow.add_edge("refine", "summarize")
     workflow.add_edge("summarize", END)
 
-    # ==========================================
-    # 4. 核心：引入持久化记忆载体
-    # ==========================================
-    # MemorySaver() 会在内存中记录每一步的 State。
-    # 当图被中断挂起时，Streamlit 刷新也不会丢失这些数据。
-    memory = MemorySaver()
-
-    # 5. 编译，并设置两次中断拦截
     app = workflow.compile(
-        checkpointer=memory,
+        checkpointer=checkpointer,
         interrupt_before=["human_filter_1", "human_filter_2"]
     )
-    
     return app
 
-# 提供一个编译好的单例实例，供 app.py 直接 import 并在前端调用
-debate_app = build_debate_graph()
+
+# 网关使用同步版 (update_state / get_state 主线程安全)
+debate_app = build_debate_graph(checkpointer=sync_saver)
+
+
+def get_async_debate_app():
+    """Worker 使用异步版 (ainvoke / astream)"""
+    return build_debate_graph(checkpointer=async_saver)

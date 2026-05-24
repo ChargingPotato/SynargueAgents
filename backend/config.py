@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     app_version: str = "2.0.0"
     cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
     debug: bool = True
+    redis_url: str = "redis://localhost:6379/0"
 
 
 settings = Settings()

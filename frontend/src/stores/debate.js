@@ -125,10 +125,14 @@ export const useDebateStore = defineStore('debate', {
         const { data } = await api.submitReview(this.threadId, dataA, dataB)
         this.phase = data.phase
         this.state = data.state
-        this._addPhase(data.phase)
+        if (data.phase === 'researching') {
+          this._startPolling()
+        } else {
+          this._addPhase(data.phase)
+          this.loading = false
+        }
       } catch (err) {
         this.error = err.response?.data?.detail || err.message
-      } finally {
         this.loading = false
       }
     },
@@ -141,10 +145,14 @@ export const useDebateStore = defineStore('debate', {
         const { data } = await api.submitFeedback(this.threadId, feedback)
         this.phase = data.phase
         this.state = data.state
-        this._addPhase(data.phase)
+        if (data.phase === 'researching') {
+          this._startPolling()
+        } else {
+          this._addPhase(data.phase)
+          this.loading = false
+        }
       } catch (err) {
         this.error = err.response?.data?.detail || err.message
-      } finally {
         this.loading = false
       }
     },
